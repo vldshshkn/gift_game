@@ -61,10 +61,10 @@
       <button onclick="restartGame()">Еще раз?</button>
     </div>
   </div>
-  <audio id="bg-music" src="фоновая.wav" loop></audio>
-  <audio id="catch-sound" src="когда ловит подарок.wav"></audio>
-  <audio id="lose-sound" src="проигрыш.wav"></audio>
-  <audio id="win-sound" src="Финальная победа.wav"></audio>
+  <audio id="bg-music" src="bg.wav" loop></audio>
+  <audio id="catch-sound" src="catch.wav"></audio>
+  <audio id="lose-sound" src="lose.wav"></audio>
+  <audio id="win-sound" src="win.wav"></audio>
   <script>
     const game = document.getElementById('game');
     const scoreboard = document.getElementById('scoreboard');
@@ -90,7 +90,7 @@
       const src = isCorrect
         ? correctFaces[Math.floor(Math.random() * correctFaces.length)]
         : wrongFaces[Math.floor(Math.random() * wrongFaces.length)];
-      img.src = 'faces/' + src;
+      img.src = 'src;
       img.className = 'face';
       img.dataset.correct = correctFaces.includes(src);
       img.style.left = Math.random() * 90 + 'vw';
