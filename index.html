@@ -1,81 +1,72 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Поймай все 7 подарков!</title>
+  <meta charset="UTF-8">
+  <title>Поймай Леру</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Press Start 2P', cursive;
       background: black;
-      color: white;
       overflow: hidden;
+      font-family: 'Press Start 2P', cursive;
+      color: white;
     }
     #game {
       position: relative;
       width: 100vw;
       height: 100vh;
     }
-    .emoji {
+    .face {
       position: absolute;
-      font-size: 2rem;
+      width: 80px;
+      height: auto;
       animation: fall linear;
+      cursor: pointer;
     }
     @keyframes fall {
-      0% { top: -50px; }
+      0% { top: -100px; }
       100% { top: 100vh; }
-    }
-    #basket {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2rem;
     }
     #scoreboard {
       position: absolute;
       bottom: 10px;
       left: 10px;
-      font-size: 1rem;
+      font-size: 12px;
     }
     #message {
       position: absolute;
       top: 40%;
       width: 100%;
       text-align: center;
-      font-size: 1.2rem;
+      font-size: 14px;
       display: none;
     }
     #message button {
-      font-size: 1rem;
-      margin: 1rem;
+      font-size: 12px;
+      margin-top: 1rem;
     }
     #title {
       text-align: center;
-      padding-top: 10px;
-      font-size: 1rem;
+      padding: 10px;
+      font-size: 12px;
     }
   </style>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div id="title">Молодец, вот еще одно задание. Поймай все 7 подарков!</div>
+  <div id="title">Поймай Леру 7 раз подряд!</div>
   <div id="game">
-    <div id="basket">🧺</div>
-    <div id="scoreboard">Поймано: 0 / 7</div>
+    <div id="scoreboard">Поймано подряд: 0 / 7</div>
     <div id="message">
       <div id="resultText"></div>
       <button onclick="restartGame()">Еще раз?</button>
     </div>
   </div>
-  <audio id="bg-music" src="фоновая.wav" loop autoplay></audio>
+  <audio id="bg-music" src="фоновая.wav" loop></audio>
   <audio id="catch-sound" src="когда ловит подарок.wav"></audio>
   <audio id="lose-sound" src="проигрыш.wav"></audio>
   <audio id="win-sound" src="Финальная победа.wav"></audio>
   <script>
     const game = document.getElementById('game');
-    const basket = document.getElementById('basket');
     const scoreboard = document.getElementById('scoreboard');
     const message = document.getElementById('message');
     const resultText = document.getElementById('resultText');
@@ -85,38 +76,43 @@
     const loseSound = document.getElementById('lose-sound');
     const winSound = document.getElementById('win-sound');
 
-    const giftEmoji = '🎁';
-    const otherEmojis = ['🍕', '🐶', '💩', '🍔', '🚀', '👾', '😈', '🎃'];
+    const correctFaces = ['1_1.png', '1_2.png', '1_3.png', '1_4.png', '1_5.png', '1_6.png', '1_7.png'];
+    const wrongFaces = ['2_1.png', '2_2.png', '2_3.png', '2_4.png', '2_5.png', '2_6.png', '2_7.png', '2_8.png', '2_9.png', '2_10.png', '2_11.png', '2_12.png'];
+    const allFaces = correctFaces.concat(wrongFaces);
 
-    let caughtGifts = 0;
-    let caughtSet = new Set();
+    let caughtStreak = 0;
     let gameInterval;
+    let started = false;
 
-    function spawnEmoji() {
-      const emoji = document.createElement('div');
-      const isGift = Math.random() < 0.25;
-      emoji.textContent = isGift ? giftEmoji : otherEmojis[Math.floor(Math.random() * otherEmojis.length)];
-      emoji.className = 'emoji';
-      emoji.style.left = Math.random() * 90 + 'vw';
-      emoji.style.animationDuration = (2 + Math.random() * 3) + 's';
-      game.appendChild(emoji);
+    function spawnFace() {
+      const img = document.createElement('img');
+      const isCorrect = Math.random() < 0.3;
+      const src = isCorrect
+        ? correctFaces[Math.floor(Math.random() * correctFaces.length)]
+        : wrongFaces[Math.floor(Math.random() * wrongFaces.length)];
+      img.src = 'faces/' + src;
+      img.className = 'face';
+      img.dataset.correct = correctFaces.includes(src);
+      img.style.left = Math.random() * 90 + 'vw';
+      img.style.animationDuration = (2 + Math.random() * 2) + 's';
+      game.appendChild(img);
 
-      const fallDuration = parseFloat(emoji.style.animationDuration) * 1000;
-      const timer = setTimeout(() => game.removeChild(emoji), fallDuration);
+      const timer = setTimeout(() => game.removeChild(img), parseFloat(img.style.animationDuration) * 1000);
 
-      emoji.addEventListener('click', () => {
+      img.addEventListener('click', () => {
         clearTimeout(timer);
-        if (emoji.textContent === giftEmoji) {
+        game.removeChild(img);
+        if (img.dataset.correct === 'true') {
+          catchSound.currentTime = 0;
           catchSound.play();
-          caughtSet.add(emoji.textContent + Math.random());
-          caughtGifts = caughtSet.size;
+          caughtStreak++;
+        } else {
+          caughtStreak = 0;
+          lose();
+          return;
         }
-        game.removeChild(emoji);
-        scoreboard.textContent = `Поймано: ${caughtGifts} / 7`;
-
-        if (caughtGifts >= 7) {
-          win();
-        }
+        scoreboard.textContent = `Поймано подряд: ${caughtStreak} / 7`;
+        if (caughtStreak >= 7) win();
       });
     }
 
@@ -125,7 +121,7 @@
       bgMusic.pause();
       winSound.play();
       message.style.display = 'block';
-      resultText.textContent = 'Поздравляем! Все подарки пойманы!';
+      resultText.textContent = 'Ты поймал(а) Леру 7 раз подряд!';
       setTimeout(() => {
         window.location.href = 'https://vldshshkn.github.io/safe_game/';
       }, 5000);
@@ -136,23 +132,25 @@
       bgMusic.pause();
       loseSound.play();
       message.style.display = 'block';
-      resultText.textContent = 'Вы проиграли. Еще раз?';
+      resultText.textContent = 'Это был не тот человек. Еще раз?';
     }
 
     function restartGame() {
       message.style.display = 'none';
-      caughtGifts = 0;
-      caughtSet.clear();
-      scoreboard.textContent = 'Поймано: 0 / 7';
+      caughtStreak = 0;
+      scoreboard.textContent = 'Поймано подряд: 0 / 7';
       bgMusic.currentTime = 0;
       bgMusic.play();
-      gameInterval = setInterval(spawnEmoji, 1000);
+      gameInterval = setInterval(spawnFace, 1000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      restartGame();
-      document.addEventListener('mousemove', e => {
-        basket.style.left = (e.clientX - 20) + 'px';
+      document.addEventListener('mousemove', () => {
+        if (!started) {
+          started = true;
+          bgMusic.play();
+          restartGame();
+        }
       });
     });
   </script>
